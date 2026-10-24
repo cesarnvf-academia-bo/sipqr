@@ -1,0 +1,72 @@
+<main class="min-h-screen cuerpo-claro p-4">
+    <section class="max-w-6xl mx-auto">
+        <header class="mb-4">
+            <h1 class="text-2xl font-semibold text-teal-700">Gestión de usuarios</h1>
+            <nav class="text-sm text-slate-600 mt-1">Inicio > Usuarios</nav>
+        </header>
+
+        <div class="flex justify-end mb-4">
+            <button (click)="abrirAdicionar()" class="bg-teal-700 text-white px-4 py-2 rounded hover:bg-teal-800">Adicionar</button>
+        </div>
+
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
+            <div class="flex gap-2">
+                <input type="text" [(ngModel)]="textoBuscar" (keyup.enter)="buscarUsuarios()" placeholder="Buscar por usuario" class="border border-slate-300 rounded px-3 py-2">
+                <button (click)="buscarUsuarios()" class="bg-slate-700 text-white px-3 py-2 rounded hover:bg-slate-800">Buscar</button>
+                <button (click)="limpiarBusqueda()" class="bg-slate-200 text-slate-700 px-3 py-2 rounded hover:bg-slate-300">Limpiar</button>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="text-sm text-slate-600">Mostrar</span>
+                <select (change)="cambiarLimite($event)" [value]="limite()" class="border border-slate-300 rounded px-2 py-2">
+                    <option value="5">5</option>
+                    <option value="10">10</option>
+                    <option value="20">20</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="overflow-x-auto bg-white border border-slate-200 rounded">
+            <table class="w-full">
+                <thead class="bg-slate-50">
+                    <tr>
+                        <th class="text-left p-3 border-b border-slate-200">ID</th>
+                        <th class="text-left p-3 border-b border-slate-200">Usuario</th>
+                        <th class="text-left p-3 border-b border-slate-200">Estado</th>
+                        <th class="text-right p-3 border-b border-slate-200">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let usuario of usuarios()" class="border-b border-slate-100">
+                        <td class="p-3">{{ usuario.id }}</td>
+                        <td class="p-3">{{ usuario.usuario }}</td>
+                        <td class="p-3">
+                            <span *ngIf="usuario.estado" class="px-2 py-1 rounded text-xs bg-green-100 text-green-700">Activo</span>
+                            <span *ngIf="!usuario.estado" class="px-2 py-1 rounded text-xs bg-slate-100 text-slate-700">Inactivo</span>
+                        </td>
+                        <td class="p-3 text-right">
+                            <button (click)="abrirEditar(usuario)" class="text-blue-700 mr-3">Editar</button>
+                            <button (click)="borrarUsuario(usuario)" class="text-red-700">Borrar</button>
+                        </td>
+                    </tr>
+                    <tr *ngIf="usuarios().length === 0 && !cargando()">
+                        <td colspan="4" class="p-4 text-center text-slate-600">No existen registros</td>
+                    </tr>
+                    <tr *ngIf="cargando()">
+                        <td colspan="4" class="p-4 text-center text-slate-600">Cargando...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mt-4">
+            <div class="text-sm text-slate-600">Mostrando {{ usuarios().length }} de {{ totalRegistros() }} registros</div>
+            <div class="flex gap-2 justify-end">
+                <button (click)="cambiarPagina(pagina()-1)" [disabled]="pagina() <= 1" class="px-3 py-1 border rounded disabled:opacity-50">Anterior</button>
+                <button *ngFor="let p of paginasArray" (click)="cambiarPagina(p)" [class.bg-teal-700]="p === pagina()" [class.text-white]="p === pagina()" class="px-3 py-1 border rounded">{{ p }}</button>
+                <button (click)="cambiarPagina(pagina()+1)" [disabled]="pagina() >= totalPaginas()" class="px-3 py-1 border rounded disabled:opacity-50">Siguiente</button>
+            </div>
+        </div>
+    </section>
+</main>
+
+<app-usuario-formulario *ngIf="mostrarFormulario()" [usuario]="usuarioEditar()" (cerrar)="cerrarFormulario()" (guardado)="alGuardar()"></app-usuario-formulario>

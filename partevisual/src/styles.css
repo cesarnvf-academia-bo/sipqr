@@ -1,0 +1,25 @@
+@import "tailwindcss";
+
+:root {
+    --color-primario: #0f766e;
+    --color-fondo-claro: #f8fafc;
+    --color-fondo-oscuro: #0f172a;
+    --color-texto-claro: #1e293b;
+    --color-texto-oscuro: #e2e8f0;
+}
+
+html,
+body {
+    height: 100%;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.cuerpo-claro {
+    background-color: var(--color-fondo-claro);
+    color: var(--color-texto-claro);
+}
+
+.cuerpo-oscuro {
+    background-color: var(--color-fondo-oscuro);
+    color: var(--color-texto-oscuro);
+}

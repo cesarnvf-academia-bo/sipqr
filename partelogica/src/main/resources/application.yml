@@ -1,0 +1,34 @@
+servidor:
+  puerto: 8080
+
+spring:
+  application:
+    name: sipqr-partelogica
+  datasource:
+    url: jdbc:postgresql://${BD_HOST:localhost}:${BD_PUERTO:5432}/${BD_NOMBRE:sipprbd}
+    username: ${BD_USUARIO:postgres}
+    password: ${BD_CLAVE:123qwe}
+    driver-class-name: org.postgresql.Driver
+
+mybatis:
+  mapper-locations: classpath:mapeadores/*.xml
+  type-aliases-package: bo.sipqr.modelo
+  configuration:
+    map-underscore-to-camel-case: true
+    default-fetch-size: 100
+    default-statement-timeout: 30
+
+jwt:
+  secreto: ${JWT_SECRETO:claveDesarrolloSipqr2026MuySegura1234567890}
+  expiracion: ${JWT_EXPIRACION:3600000}
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+
+logging:
+  level:
+    bo.sipqr: INFO

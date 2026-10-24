@@ -1,0 +1,38 @@
+# Java
+target/
+*.class
+*.jar
+*.war
+*.ear
+hs_err_pid*
+
+# Maven
+.mvn/wrapper/maven-wrapper.jar
+
+# Node
+node_modules/
+dist/
+.tmp/
+.angular/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.settings/
+.classpath
+.project
+
+# Entorno
+.env
+*.local
+
+# Logs
+*.log
+
+# SO
+.DS_Store
+Thumbs.db

@@ -1,0 +1,30 @@
+<div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded shadow-lg w-full max-w-md">
+        <header class="p-4 border-b border-slate-200">
+            <h2 class="text-lg font-semibold text-teal-700">{{ esEdicion ? 'Editar usuario' : 'Adicionar usuario' }}</h2>
+        </header>
+        <form [formGroup]="formulario" (ngSubmit)="guardar()" class="p-4 space-y-3">
+            <div>
+                <label class="block text-sm text-slate-700 mb-1">Usuario</label>
+                <input type="text" formControlName="usuario" class="w-full border border-slate-300 rounded px-3 py-2">
+                <p *ngIf="formulario.get('usuario')?.touched && formulario.get('usuario')?.invalid" class="text-xs text-red-600">Usuario requerido (4-100 caracteres)</p>
+            </div>
+            <div>
+                <label class="block text-sm text-slate-700 mb-1">Clave {{ esEdicion ? '(opcional)' : '' }}</label>
+                <input type="password" formControlName="clave" class="w-full border border-slate-300 rounded px-3 py-2">
+                <p *ngIf="formulario.get('clave')?.touched && formulario.get('clave')?.invalid" class="text-xs text-red-600">Clave requerida (12-72 caracteres)</p>
+            </div>
+            <div>
+                <label class="block text-sm text-slate-700 mb-1">Estado</label>
+                <select formControlName="estado" class="w-full border border-slate-300 rounded px-3 py-2">
+                    <option [ngValue]="true">Activo</option>
+                    <option [ngValue]="false">Inactivo</option>
+                </select>
+            </div>
+            <footer class="flex justify-end gap-2 pt-2">
+                <button type="button" (click)="cancelar()" class="px-4 py-2 border rounded">Cancelar</button>
+                <button type="submit" class="px-4 py-2 bg-teal-700 text-white rounded hover:bg-teal-800">Guardar</button>
+            </footer>
+        </form>
+    </div>
+</div>

@@ -1,0 +1,12 @@
+<main class="min-h-screen flex items-center justify-center p-4 cuerpo-claro">
+    <section class="max-w-xl w-full bg-white shadow-md rounded-lg p-6 border border-slate-200">
+        <h1 class="text-2xl font-semibold text-teal-700 mb-2">SIPQR - Parte Visual</h1>
+        <p class="text-slate-600 mb-4">Inicialización y arquitectura base</p>
+        <div class="mb-4">
+            <span class="inline-block px-3 py-1 rounded text-sm" [class.bg-green-100]="estadoConexion() === 'conectado'" [class.text-green-700]="estadoConexion() === 'conectado'" [class.bg-amber-100]="estadoConexion() === 'verificando'" [class.text-amber-700]="estadoConexion() === 'verificando'" [class.bg-red-100]="estadoConexion() === 'sinConexion'" [class.text-red-700]="estadoConexion() === 'sinConexion'">
+                Estado: {{ estadoConexion() }}
+            </span>
+        </div>
+        <pre class="bg-slate-50 p-3 rounded text-sm overflow-auto" *ngIf="respuesta()">{{ respuesta() | json }}</pre>
+    </section>
+</main>

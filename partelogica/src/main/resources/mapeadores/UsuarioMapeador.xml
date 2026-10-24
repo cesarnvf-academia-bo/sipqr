@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="bo.sipqr.repositorio.mapeador.UsuarioMapeador">
+    <resultMap id="UsuarioResultado" type="bo.sipqr.modelo.Usuario">
+        <id property="id" column="id"/>
+        <result property="usuario" column="usuario"/>
+        <result property="clave" column="clave"/>
+        <result property="estado" column="estado"/>
+    </resultMap>
+
+    <sql id="columnasUsuario">
+        id, usuario, clave, estado
+    </sql>
+
+    <select id="encontrarTodos" resultMap="UsuarioResultado">
+        SELECT <include refid="columnasUsuario"/>
+        FROM usuario
+        <where>
+            <if test="buscar != null and buscar != ''">
+                LOWER(usuario) LIKE LOWER(CONCAT('%', #{buscar}, '%'))
+            </if>
+        </where>
+        ORDER BY id ASC
+        LIMIT #{limite} OFFSET #{desplazamiento}
+    </select>
+
+    <select id="encontrarPorId" resultMap="UsuarioResultado">
+        SELECT <include refid="columnasUsuario"/>
+        FROM usuario
+        WHERE id = #{id}
+    </select>
+
+    <select id="encontrarPorUsuario" resultMap="UsuarioResultado">
+        SELECT <include refid="columnasUsuario"/>
+        FROM usuario
+        WHERE LOWER(usuario) = LOWER(#{usuario})
+    </select>
+
+    <select id="contar" resultType="long">
+        SELECT COUNT(*)
+        FROM usuario
+        <where>
+            <if test="buscar != null and buscar != ''">
+                LOWER(usuario) LIKE LOWER(CONCAT('%', #{buscar}, '%'))
+            </if>
+        </where>
+    </select>
+
+    <insert id="adicionar" parameterType="bo.sipqr.modelo.Usuario" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO usuario (usuario, clave, estado)
+        VALUES (#{usuario}, #{clave}, #{estado})
+    </insert>
+
+    <update id="actualizar" parameterType="bo.sipqr.modelo.Usuario">
+        UPDATE usuario
+        SET usuario = #{usuario},
+            clave = #{clave},
+            estado = #{estado}
+        WHERE id = #{id}
+    </update>
+
+    <delete id="borrar">
+        DELETE FROM usuario WHERE id = #{id}
+    </delete>
+</mapper>
