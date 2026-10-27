@@ -4,18 +4,22 @@ import { FormsModule } from '@angular/forms';
 import { UsuarioServicio } from '../usuario-servicio';
 import { Usuario, PaginaRespuesta } from '../usuario-modelo';
 import { AlertaServicio } from '../../../compartido/servicios/alerta-servicio';
+import { AutenticacionServicio } from '../../../nucleo/autenticacion/autenticacion-servicio';
+import { Router, RouterLink } from '@angular/router';
 import { UsuarioFormularioComponente } from '../usuario-formulario/usuario-formulario-componente';
 
 @Component({
     selector: 'app-usuario-lista',
     standalone: true,
-    imports: [CommonModule, FormsModule, UsuarioFormularioComponente],
+    imports: [CommonModule, FormsModule, UsuarioFormularioComponente, RouterLink],
     templateUrl: './usuario-lista-componente.html',
     styleUrls: ['./usuario-lista-componente.css']
 })
 export class UsuarioListaComponente implements OnInit {
     private usuarioServicio = inject(UsuarioServicio);
     private alertaServicio = inject(AlertaServicio);
+    private autenticacionServicio = inject(AutenticacionServicio);
+    private router = inject(Router);
 
     usuarios = signal<Usuario[]>([]);
     pagina = signal<number>(1);
@@ -116,6 +120,11 @@ export class UsuarioListaComponente implements OnInit {
                 this.alertaServicio.error(mensaje);
             }
         });
+    }
+
+    cerrarSesion(): void {
+        this.autenticacionServicio.cerrarSesion();
+        void this.router.navigate(['/acceso']);
     }
 
     get paginasArray(): number[] {

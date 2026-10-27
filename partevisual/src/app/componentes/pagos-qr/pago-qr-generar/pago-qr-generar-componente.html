@@ -1,0 +1,77 @@
+<div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-40">
+    <div class="relative bg-white rounded shadow-lg w-full max-w-xl max-h-screen overflow-y-auto">
+        <header class="p-4 border-b border-slate-200 flex items-center justify-between">
+            <div>
+                <h2 class="text-lg font-semibold text-teal-700">Generar pago QR</h2>
+                <p class="text-xs text-slate-500">El QR se genera con la cuenta configurada en BANECO.</p>
+            </div>
+            <button type="button" (click)="cancelar()" [disabled]="generando()"
+                class="text-slate-500 hover:text-slate-800 disabled:opacity-50">Cerrar</button>
+        </header>
+
+        <form [formGroup]="formulario" (ngSubmit)="guardar()" class="p-4 space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="amount" class="block text-sm text-slate-700 mb-1">Importe</label>
+                    <input id="amount" type="number" min="0.01" step="0.01" formControlName="amount"
+                        class="w-full border border-slate-300 rounded px-3 py-2">
+                    @if (formulario.controls.amount.touched && formulario.controls.amount.invalid) {
+                        <p class="text-xs text-red-600 mt-1">Ingrese un importe mayor a cero con dos decimales.</p>
+                    }
+                </div>
+                <div>
+                    <label for="currency" class="block text-sm text-slate-700 mb-1">Moneda</label>
+                    <select id="currency" formControlName="currency" class="w-full border border-slate-300 rounded px-3 py-2">
+                        <option value="BOB">BOB</option>
+                        <option value="USD">USD</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="dueDate" class="block text-sm text-slate-700 mb-1">Vencimiento</label>
+                    <input id="dueDate" type="date" formControlName="dueDate" [min]="fechaMinima"
+                        class="w-full border border-slate-300 rounded px-3 py-2">
+                </div>
+                <div>
+                    <label for="branchCode" class="block text-sm text-slate-700 mb-1">Código de sucursal (opcional)</label>
+                    <input id="branchCode" type="text" formControlName="branchCode" maxlength="5"
+                        class="w-full border border-slate-300 rounded px-3 py-2">
+                </div>
+            </div>
+
+            <div>
+                <label for="description" class="block text-sm text-slate-700 mb-1">Descripción (opcional)</label>
+                <textarea id="description" formControlName="description" rows="2" maxlength="500"
+                    class="w-full border border-slate-300 rounded px-3 py-2"></textarea>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <label class="flex items-center gap-2 text-sm text-slate-700">
+                    <input type="checkbox" formControlName="singleUse" class="rounded border-slate-300">
+                    Uso único
+                </label>
+                <label class="flex items-center gap-2 text-sm text-slate-700">
+                    <input type="checkbox" formControlName="modifyAmount" class="rounded border-slate-300">
+                    Permite modificar importe
+                </label>
+            </div>
+
+            <footer class="flex justify-end gap-2 pt-2 border-t border-slate-200">
+                <button type="button" (click)="cancelar()" [disabled]="generando()"
+                    class="px-4 py-2 border rounded disabled:opacity-50">Cancelar</button>
+                <button type="submit" [disabled]="generando()"
+                    class="bg-teal-700 text-white px-4 py-2 rounded hover:bg-teal-800 disabled:opacity-60">
+                    {{ generando() ? 'Generando...' : 'Generar QR' }}
+                </button>
+            </footer>
+        </form>
+
+        @if (generando()) {
+            <div class="absolute inset-0 bg-white bg-opacity-70 flex items-center justify-center rounded">
+                <div class="flex items-center gap-3 text-slate-700">
+                    <span class="inline-block h-5 w-5 border-2 border-teal-700 border-t-transparent rounded-full animate-spin"></span>
+                    Generando QR en BANECO...
+                </div>
+            </div>
+        }
+    </div>
+</div>

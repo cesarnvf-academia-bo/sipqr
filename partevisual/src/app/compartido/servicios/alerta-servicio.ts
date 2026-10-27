@@ -40,14 +40,19 @@ export class AlertaServicio {
     }
 
     async confirmar(titulo: string, mensaje: string): Promise<boolean> {
+        return this.confirmarAccion(titulo, mensaje, 'Sí, eliminar', '#dc2626');
+    }
+
+    async confirmarAccion(titulo: string, mensaje: string, textoConfirmar: string,
+                          colorConfirmar: string): Promise<boolean> {
         const resultado = await Swal.fire({
             icon: 'warning',
             title: titulo,
             text: mensaje,
             showCancelButton: true,
-            confirmButtonText: 'Sí, eliminar',
+            confirmButtonText: textoConfirmar,
             cancelButtonText: 'Cancelar',
-            confirmButtonColor: '#dc2626'
+            confirmButtonColor: colorConfirmar
         });
         return resultado.isConfirmed;
     }

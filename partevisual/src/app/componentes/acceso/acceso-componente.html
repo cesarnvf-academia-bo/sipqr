@@ -1,6 +1,37 @@
 <main class="min-h-screen flex items-center justify-center p-4 cuerpo-claro">
     <section class="max-w-md w-full bg-white shadow-md rounded-lg p-6 border border-slate-200">
-        <h2 class="text-xl font-semibold text-teal-700 mb-2">Acceso</h2>
-        <p class="text-slate-600">Componente base preparado.</p>
+        <h1 class="text-2xl font-semibold text-teal-700 mb-1">SIPQR</h1>
+        <p class="text-slate-600 mb-6">Sistema de Información de Pagos QR</p>
+
+        <form [formGroup]="formulario" (ngSubmit)="ingresar()" class="space-y-4">
+            <div>
+                <label for="usuario" class="block text-sm font-medium text-slate-700 mb-1">Usuario</label>
+                <input id="usuario" type="text" formControlName="usuario" autocomplete="username"
+                    class="w-full border border-slate-300 rounded px-3 py-2" />
+                @if (formulario.controls.usuario.touched && formulario.controls.usuario.invalid) {
+                    <p class="text-sm text-red-700 mt-1">El usuario es obligatorio.</p>
+                }
+            </div>
+
+            <div>
+                <label for="clave" class="block text-sm font-medium text-slate-700 mb-1">Clave</label>
+                <input id="clave" type="password" formControlName="clave" autocomplete="current-password"
+                    class="w-full border border-slate-300 rounded px-3 py-2" />
+                @if (formulario.controls.clave.touched && formulario.controls.clave.invalid) {
+                    <p class="text-sm text-red-700 mt-1">La clave es obligatoria.</p>
+                }
+            </div>
+
+            @if (error()) {
+                <p class="text-sm text-red-700 bg-red-50 border border-red-200 rounded p-3">{{ error() }}</p>
+            }
+
+            <button type="submit" [disabled]="enviando()"
+                class="w-full bg-teal-700 text-white px-4 py-2 rounded hover:bg-teal-800 disabled:opacity-60 disabled:cursor-not-allowed">
+                {{ enviando() ? 'Ingresando...' : 'Ingresar' }}
+            </button>
+        </form>
+
+        <a routerLink="/" class="block text-center text-sm text-teal-700 hover:text-teal-900 mt-4">Volver al inicio</a>
     </section>
 </main>

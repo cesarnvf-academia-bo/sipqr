@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="bo.sipqr.repositorio.mapeador.PagoQrMapeador">
+
+    <resultMap id="pagoQrResultado" type="bo.sipqr.modelo.PagoQr">
+        <id property="id" column="id" />
+        <result property="transactionId" column="transaction_id" />
+        <result property="qrId" column="qr_id" />
+        <result property="amount" column="amount" />
+        <result property="currency" column="currency" />
+        <result property="description" column="description" />
+        <result property="dueDate" column="due_date" />
+        <result property="singleUse" column="single_use" />
+        <result property="modifyAmount" column="modify_amount" />
+        <result property="branchCode" column="branch_code" />
+        <result property="estado" column="estado" />
+        <result property="qrImage" column="qr_image" />
+        <result property="responseCode" column="response_code" />
+        <result property="responseMessage" column="response_message" />
+        <result property="resultadoIncierto" column="resultado_incierto" />
+        <result property="fechaCreacion" column="fecha_creacion" />
+        <result property="fechaActualizacion" column="fecha_actualizacion" />
+        <result property="fechaUltimaVerificacion" column="fecha_ultima_verificacion" />
+        <result property="fechaPago" column="fecha_pago" />
+        <result property="fechaAnulacion" column="fecha_anulacion" />
+        <result property="totalPagado" column="total_pagado" />
+    </resultMap>
+
+    <sql id="columnasPagoQr">
+        p.id,
+        p.transaction_id,
+        p.qr_id,
+        p.amount,
+        p.currency,
+        p.description,
+        p.due_date,
+        p.single_use,
+        p.modify_amount,
+        p.branch_code,
+        p.estado,
+        p.qr_image,
+        p.response_code,
+        p.response_message,
+        p.resultado_incierto,
+        p.fecha_creacion,
+        p.fecha_actualizacion,
+        p.fecha_ultima_verificacion,
+        p.fecha_pago,
+        p.fecha_anulacion,
+        COALESCE((SELECT SUM(d.importe) FROM pagosqr_detalle d WHERE d.pagoqr_id = p.id), 0) AS total_pagado
+    </sql>
+
+    <sql id="filtrosPagoQr">
+        <where>
+            <if test="buscar != null and buscar != ''">
+                AND (
+                    LOWER(p.transaction_id) LIKE LOWER(CONCAT('%', #{buscar}, '%'))
+                    OR LOWER(COALESCE(p.qr_id, '')) LIKE LOWER(CONCAT('%', #{buscar}, '%'))
+                    OR LOWER(COALESCE(p.description, '')) LIKE LOWER(CONCAT('%', #{buscar}, '%'))
+                )
+            </if>
+            <if test="estado != null and estado != ''">
+                AND p.estado = #{estado}
+            </if>
+        </where>
+    </sql>
+
+    <select id="encontrarTodos" resultMap="pagoQrResultado">
+        SELECT <include refid="columnasPagoQr" />
+        FROM pagosqr p
+        <include refid="filtrosPagoQr" />
+        ORDER BY p.id DESC
+        LIMIT #{limite} OFFSET #{desplazamiento}
+    </select>
+
+    <select id="contar" resultType="long">
+        SELECT COUNT(*)
+        FROM pagosqr p
+        <include refid="filtrosPagoQr" />
+    </select>
+
+    <select id="encontrarPorId" resultMap="pagoQrResultado">
+        SELECT <include refid="columnasPagoQr" />
+        FROM pagosqr p
+        WHERE p.id = #{id}
+    </select>
+
+    <insert id="insertar" parameterType="bo.sipqr.modelo.PagoQr" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO pagosqr (transaction_id, amount, currency, description, due_date, single_use, modify_amount,
+                             branch_code, estado, resultado_incierto)
+        VALUES (#{transactionId}, #{amount}, #{currency}, #{description}, #{dueDate}, #{singleUse}, #{modifyAmount},
+                #{branchCode}, #{estado}, #{resultadoIncierto})
+    </insert>
+
+    <update id="marcarGenerando">
+        UPDATE pagosqr
+        SET estado = 'GENERANDO',
+            resultado_incierto = FALSE,
+            response_code = NULL,
+            response_message = NULL,
+            fecha_actualizacion = NOW()
+        WHERE id = #{id} AND estado = 'REGISTRADO'
+    </update>
+
+    <update id="actualizarGeneracion" parameterType="bo.sipqr.modelo.PagoQr">
+        UPDATE pagosqr
+        SET qr_id = #{qrId},
+            qr_image = #{qrImage},
+            estado = #{estado},
+            response_code = #{responseCode},
+            response_message = #{responseMessage},
+            resultado_incierto = #{resultadoIncierto},
+            fecha_actualizacion = NOW()
+        WHERE id = #{id} AND estado = 'GENERANDO'
+    </update>
+
+    <update id="actualizarVerificacion" parameterType="bo.sipqr.modelo.PagoQr">
+        UPDATE pagosqr
+        SET estado = #{estado},
+            response_code = #{responseCode},
+            response_message = #{responseMessage},
+            resultado_incierto = #{resultadoIncierto},
+            fecha_ultima_verificacion = #{fechaUltimaVerificacion},
+            fecha_pago = #{fechaPago},
+            fecha_anulacion = #{fechaAnulacion},
+            fecha_actualizacion = NOW()
+        WHERE id = #{id}
+          AND (estado &lt;&gt; 'PAGADO' OR #{estado} = 'PAGADO')
+          AND (estado &lt;&gt; 'ANULADO' OR #{estado} = 'ANULADO')
+    </update>
+
+    <update id="actualizarError">
+        UPDATE pagosqr
+        SET qr_id = COALESCE(#{qrId}, qr_id),
+            estado = 'ERROR',
+            response_code = #{responseCode},
+            response_message = #{responseMessage},
+            resultado_incierto = #{resultadoIncierto},
+            fecha_actualizacion = NOW()
+        WHERE id = #{id} AND estado IN ('GENERANDO', 'PENDIENTE')
+    </update>
+
+    <update id="actualizarAnulacion" parameterType="bo.sipqr.modelo.PagoQr">
+        UPDATE pagosqr
+        SET estado = 'ANULADO',
+            response_code = #{responseCode},
+            response_message = #{responseMessage},
+            resultado_incierto = FALSE,
+            fecha_anulacion = #{fechaAnulacion},
+            fecha_actualizacion = NOW()
+        WHERE id = #{id} AND estado = 'PENDIENTE'
+    </update>
+
+    <delete id="borrarRegistrado">
+        DELETE FROM pagosqr
+        WHERE id = #{id} AND estado = 'REGISTRADO' AND qr_id IS NULL
+    </delete>
+</mapper>

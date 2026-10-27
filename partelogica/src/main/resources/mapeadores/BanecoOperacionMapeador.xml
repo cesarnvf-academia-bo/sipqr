@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="bo.sipqr.repositorio.mapeador.baneco.BanecoOperacionMapeador">
+
+    <resultMap id="operacionResultado" type="bo.sipqr.modelo.baneco.BanecoOperacion">
+        <id property="id" column="id" />
+        <result property="tipo" column="tipo" />
+        <result property="transactionId" column="transaction_id" />
+        <result property="qrId" column="qr_id" />
+        <result property="batchId" column="batch_id" />
+        <result property="bancoBatchId" column="banco_batch_id" />
+        <result property="estado" column="estado" />
+        <result property="codigoRespuesta" column="codigo_respuesta" />
+        <result property="mensajeRespuesta" column="mensaje_respuesta" />
+        <result property="hashSolicitud" column="hash_solicitud" />
+        <result property="fechaCreacion" column="fecha_creacion" />
+        <result property="fechaActualizacion" column="fecha_actualizacion" />
+    </resultMap>
+
+    <select id="buscarOperacion" resultMap="operacionResultado">
+        SELECT id, tipo, transaction_id, qr_id, batch_id, banco_batch_id, estado, codigo_respuesta,
+               mensaje_respuesta, hash_solicitud, fecha_creacion, fecha_actualizacion
+        FROM baneco_operacion
+        WHERE tipo = #{tipo} AND transaction_id = #{transactionId}
+        LIMIT 1
+    </select>
+
+    <insert id="insertarOperacion" parameterType="bo.sipqr.modelo.baneco.BanecoOperacion"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO baneco_operacion (tipo, transaction_id, qr_id, batch_id, banco_batch_id, estado,
+                                      codigo_respuesta, mensaje_respuesta, hash_solicitud)
+        VALUES (#{tipo}, #{transactionId}, #{qrId}, #{batchId}, #{bancoBatchId}, #{estado},
+                #{codigoRespuesta}, #{mensajeRespuesta}, #{hashSolicitud})
+    </insert>
+
+    <update id="actualizarOperacion" parameterType="bo.sipqr.modelo.baneco.BanecoOperacion">
+        UPDATE baneco_operacion
+        SET qr_id = #{qrId},
+            batch_id = #{batchId},
+            banco_batch_id = #{bancoBatchId},
+            estado = #{estado},
+            codigo_respuesta = #{codigoRespuesta},
+            mensaje_respuesta = #{mensajeRespuesta},
+            fecha_actualizacion = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <insert id="insertarNotificacion">
+        INSERT INTO baneco_notificacion (tipo, clave_evento, hash_payload, estado, fecha_procesamiento)
+        VALUES (#{tipo}, #{claveEvento}, #{hashPayload}, #{estado}, NOW())
+    </insert>
+
+    <insert id="guardarDetalleLote" parameterType="bo.sipqr.modelo.baneco.BanecoDetalleLote">
+        INSERT INTO baneco_lote_detalle (banco_batch_id, batch_id, batch_detail_id, estado, descripcion_estado,
+                                         transaction_id_debito, transaction_id_credito)
+        VALUES (#{bancoBatchId}, #{batchId}, #{batchDetailId}, #{estado}, #{descripcionEstado},
+                #{transactionIdDebito}, #{transactionIdCredito})
+        ON CONFLICT (batch_id, batch_detail_id) DO UPDATE
+        SET banco_batch_id = EXCLUDED.banco_batch_id,
+            estado = EXCLUDED.estado,
+            descripcion_estado = EXCLUDED.descripcion_estado,
+            transaction_id_debito = EXCLUDED.transaction_id_debito,
+            transaction_id_credito = EXCLUDED.transaction_id_credito,
+            fecha_actualizacion = NOW()
+    </insert>
+</mapper>

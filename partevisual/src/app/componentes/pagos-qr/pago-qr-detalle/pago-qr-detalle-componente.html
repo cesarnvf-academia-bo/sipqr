@@ -1,0 +1,142 @@
+<div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-40">
+    <div class="relative bg-white rounded shadow-lg w-full max-w-4xl max-h-screen overflow-y-auto">
+        <header class="sticky top-0 bg-white p-4 border-b border-slate-200 flex items-center justify-between z-10">
+            <div>
+                <h2 class="text-lg font-semibold text-teal-700">Detalle del pago QR</h2>
+                <p class="text-xs text-slate-500">El estado se actualiza automáticamente mientras esté pendiente.</p>
+            </div>
+            <button type="button" (click)="cerrarModal()" class="text-slate-500 hover:text-slate-800">Cerrar</button>
+        </header>
+
+        @if (cargando()) {
+            <div class="p-6 text-slate-600">Cargando pago QR...</div>
+        } @else if (errorCarga()) {
+            <div class="p-6">
+                <p class="text-red-700 mb-4">{{ errorCarga() }}</p>
+                <button type="button" (click)="cargar()" class="bg-slate-700 text-white px-4 py-2 rounded hover:bg-slate-800">Reintentar</button>
+            </div>
+        } @else if (pago(); as p) {
+            <div class="p-4 space-y-5">
+                <div class="flex flex-col lg:flex-row gap-5">
+                    <div class="flex-1 space-y-4">
+                        <div class="flex flex-wrap items-center gap-3">
+                            <span class="px-3 py-1 rounded text-sm font-medium" [ngClass]="estadoClase(p.estado)">{{ p.estado }}</span>
+                            @if (p.resultadoIncierto) {
+                                <span class="px-3 py-1 rounded text-sm bg-red-100 text-red-700">Resultado incierto</span>
+                            }
+                            @if (p.estado === 'PENDIENTE') {
+                                <span class="text-xs text-slate-500 flex items-center gap-2">
+                                    <span class="inline-block h-3 w-3 border-2 border-teal-700 border-t-transparent rounded-full animate-spin"></span>
+                                    Consultando BANECO...
+                                </span>
+                            }
+                        </div>
+
+                        <dl class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                            <div><dt class="text-slate-500">ID</dt><dd class="font-medium">{{ p.id }}</dd></div>
+                            <div><dt class="text-slate-500">Transacción</dt><dd class="font-medium break-all">{{ p.transactionId }}</dd></div>
+                            <div><dt class="text-slate-500">QR BANECO</dt><dd class="font-medium break-all">{{ p.qrId || 'Sin generar' }}</dd></div>
+                            <div><dt class="text-slate-500">Importe</dt><dd class="font-medium">{{ p.amount | number:'1.2-2' }} {{ p.currency }}</dd></div>
+                            <div><dt class="text-slate-500">Vencimiento</dt><dd class="font-medium">{{ p.dueDate | date:'dd/MM/yyyy':'UTC' }}</dd></div>
+                            <div><dt class="text-slate-500">Total pagado</dt><dd class="font-medium">{{ p.totalPagado | number:'1.2-2' }} {{ p.currency }}</dd></div>
+                            <div><dt class="text-slate-500">Uso único</dt><dd class="font-medium">{{ p.singleUse ? 'Sí' : 'No' }}</dd></div>
+                            <div><dt class="text-slate-500">Permite modificar importe</dt><dd class="font-medium">{{ p.modifyAmount ? 'Sí' : 'No' }}</dd></div>
+                            <div><dt class="text-slate-500">Creado</dt><dd class="font-medium">{{ p.fechaCreacion | date:'dd/MM/yyyy HH:mm' }}</dd></div>
+                            <div><dt class="text-slate-500">Última verificación</dt><dd class="font-medium">{{ p.fechaUltimaVerificacion ? (p.fechaUltimaVerificacion | date:'dd/MM/yyyy HH:mm') : '—' }}</dd></div>
+                            <div><dt class="text-slate-500">Fecha de pago</dt><dd class="font-medium">{{ p.fechaPago ? (p.fechaPago | date:'dd/MM/yyyy HH:mm') : '—' }}</dd></div>
+                            <div><dt class="text-slate-500">Fecha de anulación</dt><dd class="font-medium">{{ p.fechaAnulacion ? (p.fechaAnulacion | date:'dd/MM/yyyy HH:mm') : '—' }}</dd></div>
+                        </dl>
+
+                        @if (p.description) {
+                            <div>
+                                <p class="text-sm text-slate-500">Descripción</p>
+                                <p class="text-sm text-slate-800">{{ p.description }}</p>
+                            </div>
+                        }
+
+                        @if (p.responseMessage) {
+                            <div class="bg-slate-50 border border-slate-200 rounded p-3 text-sm">
+                                <p class="text-slate-500">Respuesta BANECO</p>
+                                <p class="text-slate-800 break-words">{{ p.responseCode }} - {{ p.responseMessage }}</p>
+                            </div>
+                        }
+
+                        @if (errorSondeo()) {
+                            <p class="text-sm text-amber-700">{{ errorSondeo() }}</p>
+                        }
+
+                        <div class="flex flex-wrap gap-2">
+                            @if (p.puedeVerificar) {
+                                <button type="button" (click)="verificarManual()" [disabled]="verificando() || anulando()"
+                                    class="bg-slate-700 text-white px-4 py-2 rounded hover:bg-slate-800 disabled:opacity-60">
+                                    {{ verificando() ? 'Verificando...' : 'Verificar ahora' }}
+                                </button>
+                            }
+                            @if (p.puedeAnular) {
+                                <button type="button" (click)="anular()" [disabled]="verificando() || anulando()"
+                                    class="bg-red-700 text-white px-4 py-2 rounded hover:bg-red-800 disabled:opacity-60">
+                                    {{ anulando() ? 'Anulando...' : 'Anular QR' }}
+                                </button>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="lg:w-72 flex flex-col items-center gap-2">
+                        <p class="text-sm text-slate-500">Imagen del QR</p>
+                        @if (qrImagenUrl(); as imagen) {
+                            <img [src]="imagen" alt="Código QR de pago" class="w-64 h-64 object-contain border border-slate-200 rounded bg-white p-2">
+                        } @else {
+                            <div class="w-64 h-64 border border-dashed border-slate-300 rounded flex items-center justify-center text-sm text-slate-500 text-center p-4">
+                                El QR aún no fue generado.
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <section>
+                    <h3 class="text-md font-semibold text-slate-700 mb-2">Pagos recibidos</h3>
+                    <div class="overflow-x-auto border border-slate-200 rounded">
+                        <table class="w-full text-sm">
+                            <thead class="bg-slate-50">
+                                <tr>
+                                    <th class="text-left p-3 border-b border-slate-200">Transacción bancaria</th>
+                                    <th class="text-left p-3 border-b border-slate-200">Fecha</th>
+                                    <th class="text-right p-3 border-b border-slate-200">Importe</th>
+                                    <th class="text-left p-3 border-b border-slate-200">Remitente</th>
+                                    <th class="text-left p-3 border-b border-slate-200">Cuenta</th>
+                                    <th class="text-left p-3 border-b border-slate-200">Descripción</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @for (detalle of (p.pagos ?? []); track detalle.id) {
+                                    <tr class="border-b border-slate-100">
+                                        <td class="p-3 break-all">{{ detalle.identificadorPagoBancario }}</td>
+                                        <td class="p-3">{{ detalle.fechaPago ? (detalle.fechaPago | date:'dd/MM/yyyy HH:mm') : '—' }}</td>
+                                        <td class="p-3 text-right">{{ detalle.importe | number:'1.2-2' }} {{ detalle.moneda }}</td>
+                                        <td class="p-3">{{ detalle.datosPago.senderName || '—' }}</td>
+                                        <td class="p-3">{{ detalle.datosPago.senderAccount || '—' }}</td>
+                                        <td class="p-3">{{ detalle.datosPago.description || '—' }}</td>
+                                    </tr>
+                                }
+                                @if ((p.pagos ?? []).length === 0) {
+                                    <tr>
+                                        <td colspan="6" class="p-4 text-center text-slate-600">No se registraron pagos.</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+
+            @if (verificando() || anulando()) {
+                <div class="absolute inset-0 bg-white bg-opacity-70 flex items-center justify-center rounded z-20">
+                    <div class="flex items-center gap-3 text-slate-700">
+                        <span class="inline-block h-5 w-5 border-2 border-teal-700 border-t-transparent rounded-full animate-spin"></span>
+                        {{ anulando() ? 'Anulando QR en BANECO...' : 'Consultando estado en BANECO...' }}
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</div>

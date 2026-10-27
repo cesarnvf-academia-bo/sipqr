@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="bo.sipqr.repositorio.mapeador.PagoQrDetalleMapeador">
+
+    <resultMap id="pagoQrDetalleResultado" type="bo.sipqr.modelo.PagoQrDetalle">
+        <id property="id" column="id" />
+        <result property="pagoQrId" column="pagoqr_id" />
+        <result property="identificadorPagoBancario" column="identificador_pago_bancario" />
+        <result property="fechaPago" column="fecha_pago" />
+        <result property="importe" column="importe" />
+        <result property="moneda" column="moneda" />
+        <result property="datosPago" column="datos_pago" />
+        <result property="fechaRecepcion" column="fecha_recepcion" />
+    </resultMap>
+
+    <insert id="insertarSiNoExiste" parameterType="bo.sipqr.modelo.PagoQrDetalle">
+        INSERT INTO pagosqr_detalle (pagoqr_id, identificador_pago_bancario, fecha_pago, importe, moneda, datos_pago)
+        VALUES (#{pagoQrId}, #{identificadorPagoBancario}, #{fechaPago}, #{importe}, #{moneda},
+                CAST(#{datosPago} AS jsonb))
+        ON CONFLICT (pagoqr_id, identificador_pago_bancario) DO NOTHING
+    </insert>
+
+    <select id="encontrarPorPagoQrId" resultMap="pagoQrDetalleResultado">
+        SELECT id, pagoqr_id, identificador_pago_bancario, fecha_pago, importe, moneda,
+               datos_pago::text AS datos_pago, fecha_recepcion
+        FROM pagosqr_detalle
+        WHERE pagoqr_id = #{pagoQrId}
+        ORDER BY fecha_pago ASC NULLS LAST, id ASC
+    </select>
+
+    <select id="sumarImportes" resultType="java.math.BigDecimal">
+        SELECT COALESCE(SUM(importe), 0)
+        FROM pagosqr_detalle
+        WHERE pagoqr_id = #{pagoQrId}
+    </select>
+</mapper>

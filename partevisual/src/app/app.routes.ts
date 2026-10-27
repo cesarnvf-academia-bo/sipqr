@@ -1,5 +1,7 @@
 import { Routes } from '@angular/router';
 import { UsuarioListaComponente } from './componentes/usuarios/usuario-lista/usuario-lista-componente';
+import { autenticacionGuardia } from './nucleo/guardias/autenticacion-guardia';
+import { administradorGuardia } from './nucleo/guardias/administrador-guardia';
 
 export const routes: Routes = [
     {
@@ -12,7 +14,18 @@ export const routes: Routes = [
     },
     {
         path: 'usuarios',
-        component: UsuarioListaComponente
+        component: UsuarioListaComponente,
+        canActivate: [autenticacionGuardia, administradorGuardia]
+    },
+    {
+        path: 'configuracionqr',
+        loadComponent: () => import('./componentes/configuracion-qr/configuracion-qr-componente').then(m => m.ConfiguracionQrComponente),
+        canActivate: [autenticacionGuardia, administradorGuardia]
+    },
+    {
+        path: 'pagosqr',
+        loadComponent: () => import('./componentes/pagos-qr/pago-qr-lista/pago-qr-lista-componente').then(m => m.PagoQrListaComponente),
+        canActivate: [autenticacionGuardia, administradorGuardia]
     },
     {
         path: '**',

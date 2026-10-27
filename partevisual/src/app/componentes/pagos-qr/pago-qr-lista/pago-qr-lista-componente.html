@@ -1,0 +1,130 @@
+<main class="min-h-screen cuerpo-claro p-4">
+    <section class="max-w-7xl mx-auto">
+        <header class="mb-4 flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+            <div>
+                <h1 class="text-2xl font-semibold text-teal-700">Pagos QR</h1>
+                <nav class="text-sm text-slate-600 mt-1">Inicio &gt; Pagos QR</nav>
+            </div>
+            <div class="flex flex-wrap items-center gap-4">
+                <a routerLink="/usuarios" class="text-teal-700 hover:text-teal-900 text-sm font-medium">Usuarios</a>
+                <a routerLink="/configuracionqr" class="text-teal-700 hover:text-teal-900 text-sm font-medium">Configuración QR</a>
+                <button type="button" (click)="cerrarSesion()" class="text-slate-600 hover:text-slate-900 text-sm">Cerrar sesión</button>
+            </div>
+        </header>
+
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
+            <div class="flex flex-wrap items-end gap-2">
+                <div>
+                    <label for="buscar" class="block text-xs text-slate-600 mb-1">Buscar</label>
+                    <input id="buscar" type="text" [(ngModel)]="textoBuscar" (keyup.enter)="buscarPagos()"
+                        placeholder="Transacción, QR o descripción"
+                        class="border border-slate-300 rounded px-3 py-2 w-64">
+                </div>
+                <div>
+                    <label for="estado" class="block text-xs text-slate-600 mb-1">Estado</label>
+                    <select id="estado" [(ngModel)]="estadoFiltro" (change)="buscarPagos()"
+                        class="border border-slate-300 rounded px-3 py-2">
+                        <option value="">Todos</option>
+                        <option value="REGISTRADO">Registrado</option>
+                        <option value="GENERANDO">Generando</option>
+                        <option value="PENDIENTE">Pendiente</option>
+                        <option value="PAGADO">Pagado</option>
+                        <option value="ANULADO">Anulado</option>
+                        <option value="VENCIDO">Vencido</option>
+                        <option value="ERROR">Error</option>
+                    </select>
+                </div>
+                <button (click)="buscarPagos()" class="bg-slate-700 text-white px-3 py-2 rounded hover:bg-slate-800">Buscar</button>
+                <button (click)="limpiarFiltros()" class="bg-slate-200 text-slate-700 px-3 py-2 rounded hover:bg-slate-300">Limpiar</button>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="text-sm text-slate-600">Mostrar</span>
+                <select (change)="cambiarLimite($event)" [value]="limite()" class="border border-slate-300 rounded px-2 py-2">
+                    <option value="5">5</option>
+                    <option value="10">10</option>
+                    <option value="20">20</option>
+                </select>
+                <button (click)="abrirGenerar()" class="bg-teal-700 text-white px-4 py-2 rounded hover:bg-teal-800 ml-2">Generar QR</button>
+            </div>
+        </div>
+
+        <div class="overflow-x-auto bg-white border border-slate-200 rounded">
+            <table class="w-full text-sm">
+                <thead class="bg-slate-50">
+                    <tr>
+                        <th class="text-left p-3 border-b border-slate-200">ID</th>
+                        <th class="text-left p-3 border-b border-slate-200">Transacción</th>
+                        <th class="text-right p-3 border-b border-slate-200">Importe</th>
+                        <th class="text-left p-3 border-b border-slate-200">Vence</th>
+                        <th class="text-left p-3 border-b border-slate-200">Estado</th>
+                        <th class="text-right p-3 border-b border-slate-200">Pagado</th>
+                        <th class="text-right p-3 border-b border-slate-200">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (pago of pagos(); track pago.id) {
+                        <tr class="border-b border-slate-100 align-top">
+                            <td class="p-3">{{ pago.id }}</td>
+                            <td class="p-3">
+                                <div class="font-medium break-all">{{ pago.transactionId }}</div>
+                                @if (pago.qrId) {
+                                    <div class="text-xs text-slate-500 break-all">QR: {{ pago.qrId }}</div>
+                                }
+                            </td>
+                            <td class="p-3 text-right whitespace-nowrap">{{ pago.amount | number:'1.2-2' }} {{ pago.currency }}</td>
+                            <td class="p-3 whitespace-nowrap">{{ pago.dueDate | date:'dd/MM/yyyy':'UTC' }}</td>
+                            <td class="p-3">
+                                <span class="px-2 py-1 rounded text-xs" [ngClass]="estadoClase(pago.estado)">{{ pago.estado }}</span>
+                                @if (pago.resultadoIncierto) {
+                                    <div class="text-xs text-red-700 mt-1">Resultado incierto</div>
+                                }
+                            </td>
+                            <td class="p-3 text-right whitespace-nowrap">{{ pago.totalPagado | number:'1.2-2' }} {{ pago.currency }}</td>
+                            <td class="p-3 text-right whitespace-nowrap">
+                                <button (click)="abrirDetalle(pago)" class="text-blue-700 mr-3">Ver</button>
+                                @if (pago.puedeVerificar) {
+                                    <button (click)="verificarDesdeLista(pago)" class="text-teal-700 mr-3">Verificar</button>
+                                }
+                                @if (pago.puedeAnular) {
+                                    <button (click)="anularDesdeLista(pago)" class="text-orange-700 mr-3">Anular</button>
+                                }
+                                @if (pago.puedeBorrar) {
+                                    <button (click)="borrarPago(pago)" class="text-red-700">Eliminar</button>
+                                }
+                            </td>
+                        </tr>
+                    }
+                    @if (pagos().length === 0 && !cargando()) {
+                        <tr>
+                            <td colspan="7" class="p-4 text-center text-slate-600">No existen registros</td>
+                        </tr>
+                    }
+                    @if (cargando()) {
+                        <tr>
+                            <td colspan="7" class="p-4 text-center text-slate-600">Cargando...</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mt-4">
+            <div class="text-sm text-slate-600">Mostrando {{ pagos().length }} de {{ totalRegistros() }} registros</div>
+            <div class="flex gap-2 justify-end">
+                <button (click)="cambiarPagina(pagina()-1)" [disabled]="pagina() <= 1" class="px-3 py-1 border rounded disabled:opacity-50">Anterior</button>
+                @for (numero of paginasArray; track numero) {
+                    <button (click)="cambiarPagina(numero)" [class.bg-teal-700]="numero === pagina()" [class.text-white]="numero === pagina()" class="px-3 py-1 border rounded">{{ numero }}</button>
+                }
+                <button (click)="cambiarPagina(pagina()+1)" [disabled]="pagina() >= totalPaginas()" class="px-3 py-1 border rounded disabled:opacity-50">Siguiente</button>
+            </div>
+        </div>
+    </section>
+</main>
+
+@if (mostrarGenerar()) {
+    <app-pago-qr-generar (cerrar)="cerrarGenerar()" (guardado)="alGenerar($event)"></app-pago-qr-generar>
+}
+
+@if (pagoDetalleId(); as id) {
+    <app-pago-qr-detalle [pagoId]="id" (cerrar)="cerrarDetalle()" (actualizado)="alActualizarDetalle()"></app-pago-qr-detalle>
+}

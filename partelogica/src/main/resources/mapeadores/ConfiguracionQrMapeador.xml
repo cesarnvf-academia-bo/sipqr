@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="bo.sipqr.repositorio.mapeador.ConfiguracionQrMapeador">
+
+    <resultMap id="configuracionQrResultado" type="bo.sipqr.modelo.ConfiguracionQr">
+        <id property="id" column="id" />
+        <result property="userName" column="userName" />
+        <result property="password" column="password" />
+        <result property="keyencript" column="keyencript" />
+        <result property="account" column="account" />
+        <result property="url" column="url" />
+        <result property="fechaActualizacion" column="fecha_actualizacion" />
+    </resultMap>
+
+    <select id="encontrarConfiguracion" resultMap="configuracionQrResultado">
+        SELECT id, "userName", "password", keyencript, account, url, fecha_actualizacion
+        FROM configuracionqr
+        WHERE id = 1
+    </select>
+
+    <update id="actualizarConfiguracion" parameterType="bo.sipqr.modelo.ConfiguracionQr">
+        UPDATE configuracionqr
+        SET "userName" = #{userName},
+            "password" = #{password},
+            keyencript = #{keyencript},
+            account = #{account},
+            url = #{url},
+            fecha_actualizacion = NOW()
+        WHERE id = 1
+    </update>
+</mapper>

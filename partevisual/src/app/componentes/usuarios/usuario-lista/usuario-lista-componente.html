@@ -1,8 +1,15 @@
 <main class="min-h-screen cuerpo-claro p-4">
     <section class="max-w-6xl mx-auto">
-        <header class="mb-4">
-            <h1 class="text-2xl font-semibold text-teal-700">Gestión de usuarios</h1>
-            <nav class="text-sm text-slate-600 mt-1">Inicio > Usuarios</nav>
+        <header class="mb-4 flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+            <div>
+                <h1 class="text-2xl font-semibold text-teal-700">Gestión de usuarios</h1>
+                <nav class="text-sm text-slate-600 mt-1">Inicio &gt; Usuarios</nav>
+            </div>
+            <div class="flex flex-wrap items-center gap-4">
+                <a routerLink="/pagosqr" class="text-teal-700 hover:text-teal-900 text-sm font-medium">Pagos QR</a>
+                <a routerLink="/configuracionqr" class="text-teal-700 hover:text-teal-900 text-sm font-medium">Configuración QR</a>
+                <button type="button" (click)="cerrarSesion()" class="text-slate-600 hover:text-slate-900 text-sm">Cerrar sesión</button>
+            </div>
         </header>
 
         <div class="flex justify-end mb-4">

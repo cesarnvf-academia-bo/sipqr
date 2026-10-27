@@ -4,6 +4,8 @@ servidor:
 spring:
   application:
     name: sipqr-partelogica
+  config:
+    import: optional:file:.env[.properties]
   datasource:
     url: jdbc:postgresql://${BD_HOST:localhost}:${BD_PUERTO:5432}/${BD_NOMBRE:sipprbd}
     username: ${BD_USUARIO:postgres}
@@ -19,8 +21,20 @@ mybatis:
     default-statement-timeout: 30
 
 jwt:
-  secreto: ${JWT_SECRETO:claveDesarrolloSipqr2026MuySegura1234567890}
+  secreto: ${JWT_SECRETO:}
   expiracion: ${JWT_EXPIRACION:3600000}
+
+seguridad:
+  usuarios-administradores: ${ADMIN_USUARIOS:administrador}
+
+baneco:
+  http:
+    conexion-ms: ${BANECO_HTTP_CONEXION_MS:5000}
+    lectura-ms: ${BANECO_HTTP_LECTURA_MS:15000}
+  diagnostico:
+    habilitado: ${BANECO_DIAGNOSTICO_HABILITADO:false}
+  webhook:
+    secreto: ${BANECO_WEBHOOK_SECRETO:}
 
 springdoc:
   api-docs:
